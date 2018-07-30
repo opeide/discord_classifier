@@ -8,13 +8,14 @@ import numpy as np
 import bisect
 
 def load_img(url):
-    response = requests.get(url, timeout=2)
-    img = Image.open(BytesIO(response.content))
-    if not np.array(img).any():
-        raise ('Image is empty')
-    if np.array(img).shape[2] != 3:
-        raise('Image is not RBG')
-    return img
+    response = requests.get(url, stream=True, timeout=2)
+    for bytes in response.iter_content(chunk_size=100000):
+        img = Image.open(BytesIO(bytes))
+        if not np.array(img).any():
+            raise ('Image is empty')
+        if np.array(img).shape[2] != 3:
+            raise('Image is not RBG')
+        return img
 
 
 if __name__ == '__main__':
