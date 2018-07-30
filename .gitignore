@@ -1,0 +1,12 @@
+
+\.idea/
+
+data/
+
+logs/
+
+model/__pycache__/
+
+test_data/
+
+url_files/
