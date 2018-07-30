@@ -8,7 +8,7 @@ import numpy as np
 import bisect
 
 def load_img(url):
-    response = requests.get(url, timeout=5)
+    response = requests.get(url, timeout=2)
     img = Image.open(BytesIO(response.content))
     if not np.array(img).any():
         raise ('Image is empty')
