@@ -6,39 +6,33 @@ from PIL import Image
 from io import BytesIO
 import numpy as np
 import bisect
+import json
 
 def load_img(url):
     response = requests.get(url, stream=True, timeout=2)
     for bytes in response.iter_content(chunk_size=100000):
         img = Image.open(BytesIO(bytes))
-        if not np.array(img).any():
-            raise ('Image is empty')
-        if np.array(img).shape[2] != 3:
-            raise('Image is not RBG')
-        return img
+        error_msg = ''
+        print(np.array(img).shape)
+        if not np.array(img).any() or not np.array(img).shape:
+            error_msg = ('no pix shoe here? plz send india jpg')
+        elif np.array(img).shape[2] != 3:
+            error_msg = ('india intternet onlt work jpg?')
+        return img, error_msg
 
 
 if __name__ == '__main__':
-    TOKEN = 'NDcyODc2OTE0MTY0NjI5NTA2.Dj-tgQ.gkQB-QPmpYeSJJrU7_znFM8NGyU'
-    client = discord.Client()
+    with open('token.txt', 'r') as f:
+        TOKEN = f.read()
+        print(TOKEN)
+    with open('responses.json', 'r') as f:
+        responses = json.load(f)
+        print(responses)
+        response_keys = sorted([int(key) for key in responses.keys()])
+        print(response_keys)
+
     model = keras.models.load_model('../model/pajeet_v1.33')
-
-    responses = {0:'ERROR: Pajeet.py has reached critical PENAS!',
-                 20:'send penas and TESTALCLE now i must u have!? i send mine NOW ok',
-                 25:'send penes what can i se baby u hot hunk big meat i tak u to village an we can suk on the cob togeter',
-                 30: 'shoe penes nice',
-                 35:'okey not bad it has pens?? uwu',
-                 40: 'no this i not like wher bobs',
-                 45:'what even r u can get some bob u have not',
-                 50: 'need more bobs',
-                 55:'need little bit mor bob beby',
-                 60: 'can i touch u on the front bobs bevi u can know me have vagen',
-                 65:'HELLO milk truk just arrive i\'m am pajeet. will u send bobs and vagene, u are very sexxii',
-                 70:'NICE BOB! DO MILK! SHO VAGINE BABY! PLS SEND VEGANIA PIC FOR ME PLEAS. I WANT TO PUT MY 1 FEET ##### IN UR U WILL HAPPY!',
-                 75:'ERROR: Pajeet.py has reached critical bob! pls response vaganie px to restart'}
-
-    response_keys = sorted(list(responses.keys()))
-    print(response_keys)
+    client = discord.Client()
 
     @client.event
     async def on_message(message):
@@ -49,16 +43,20 @@ if __name__ == '__main__':
         if message.content.startswith('!pajeet'):
             print(message.content)
             url = message.content.split(' ')[1]
-            img = load_img(url)
-            p_woman = model_predict_image(model, img)
-            print(p_woman)
-            percent_woman = int(100.0*p_woman)
-            response_index = bisect.bisect_left(response_keys, percent_woman)
-            response_index = response_index - 1 if response_index != 0 else response_index
-            response_msg = responses[response_keys[response_index]]
-            print(response_msg)
-            (gender, percent) = ('woman', 100*p_woman) if p_woman>0.5 else ('man', 100*(1-p_woman))
-            await client.send_message(message.channel, '({}% {}) '.format(int(percent),gender)+response_msg)
+            img, error_msg = load_img(url)
+
+            if error_msg:
+                await client.send_message(message.channel, error_msg)
+            else:
+                p_woman = model_predict_image(model, img)
+                print(p_woman)
+                percent_woman = int(100.0*p_woman)
+                response_index = bisect.bisect_left(response_keys, percent_woman)
+                response_index = response_index - 1 if response_index != 0 else response_index
+                response_msg = responses[str(response_keys[response_index])]
+                print(response_msg)
+                (gender, percent) = ('woman', 100*p_woman) if p_woman>0.5 else ('man', 100*(1-p_woman))
+                await client.send_message(message.channel, '({}% {}) '.format(int(percent),gender)+response_msg)
 
 
     @client.event
